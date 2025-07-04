@@ -1,0 +1,114 @@
+/*
+Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+*/
+package cmd
+
+import (
+	"encoding/csv"
+	"log"
+	"os"
+	"strconv"
+	"time"
+
+	"strings"
+
+	"github.com/spf13/cobra"
+)
+
+// addCmd represents the add command
+var addCmd = &cobra.Command{
+	Use:   "add",
+	Short: "add a task",
+	Long: `add a task to the todo list`,
+	Args: cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
+	Run: func(cmd *cobra.Command, args []string) {
+
+		fr, err := os.Open("/home/karlo/Documents/tasks.csv")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		r := csv.NewReader(fr)
+
+		defer fr.Close()
+		
+		tasks, err := r.ReadAll()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var id int
+		for i, v := range tasks{
+			
+			if i == 0 {
+				continue
+			}
+
+			taskId, err := strconv.Atoi(v[0])
+			if err != nil {
+				log.Fatalln("failed to convert string to integer: ", err)
+			}
+
+			if i != taskId {
+				id = i
+				break
+			} else {
+				id = taskId + 1
+			}
+		}
+
+		newId := strconv.Itoa(id)
+
+		description := strings.Join(args, " ")
+		tempTasks := append([][]string(nil), tasks[id:]...)
+		newList := append(
+			tasks[:id],
+			[]string{
+				newId,
+				description,
+				time.Now().Format(time.DateOnly),
+			},
+		)
+
+		if id != 0 {
+			newList = append(newList, tempTasks...)
+		}
+
+		fw, err := os.OpenFile("/home/karlo/Documents/tasks.csv", os.O_RDWR|os.O_CREATE, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		w := csv.NewWriter(fw)
+
+		for _, v := range newList{
+			if err := w.Write(v); err != nil {
+				log.Fatalln("error wrinting newTask to csv: ", err)
+			}
+
+		}
+
+		w.Flush()
+		if err := w.Error(); err != nil {
+			log.Fatal(err)
+		}
+
+		if err := fw.Close(); err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(addCmd)
+
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// addCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
