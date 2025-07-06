@@ -25,16 +25,18 @@ var addCmd = &cobra.Command{
 
 		fr, err := os.Open("/home/karlo/Documents/tasks.csv")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalln("error opening the file for reading: ", err)
 		}
 
 		r := csv.NewReader(fr)
 
-		defer fr.Close()
-		
 		tasks, err := r.ReadAll()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalln("error reading all: ", err)
+		}
+
+		if err := fr.Close(); err != nil{
+			log.Fatalln("error closing file reader: ", err)
 		}
 
 		var id int
@@ -46,7 +48,7 @@ var addCmd = &cobra.Command{
 
 			taskId, err := strconv.Atoi(v[0])
 			if err != nil {
-				log.Fatalln("failed to convert string to integer: ", err)
+				log.Fatalf("failed to convert string to integer at index %d: %s\n", i, err)
 			}
 
 			if i != taskId {
@@ -58,26 +60,28 @@ var addCmd = &cobra.Command{
 		}
 
 		newId := strconv.Itoa(id)
+		name := strings.Join(args, " ")
+		date := time.Now().Format(time.DateOnly)
 
-		description := strings.Join(args, " ")
-		tempTasks := append([][]string(nil), tasks[id:]...)
+		originTasks := append([][]string(nil), tasks[id:]...)
 		newList := append(
 			tasks[:id],
 			[]string{
 				newId,
-				description,
-				time.Now().Format(time.DateOnly),
+				name,
+				date,
 			},
 		)
 
 		if id != 0 {
-			newList = append(newList, tempTasks...)
+			newList = append(newList, originTasks...)
 		}
 
 		fw, err := os.OpenFile("/home/karlo/Documents/tasks.csv", os.O_RDWR|os.O_CREATE, 0644)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalln("error opnening the file for writing: ", err)
 		}
+		defer fw.Close()
 
 		w := csv.NewWriter(fw)
 
@@ -85,17 +89,13 @@ var addCmd = &cobra.Command{
 			if err := w.Write(v); err != nil {
 				log.Fatalln("error wrinting newTask to csv: ", err)
 			}
-
 		}
 
 		w.Flush()
 		if err := w.Error(); err != nil {
-			log.Fatal(err)
+			log.Fatalln("error while flushing: ", err)
 		}
 
-		if err := fw.Close(); err != nil {
-			log.Fatal(err)
-		}
 	},
 }
 
