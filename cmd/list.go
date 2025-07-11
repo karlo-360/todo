@@ -39,7 +39,7 @@ var listCmd = &cobra.Command{
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 2, 4, ' ', 0,)
 		for _, v := range tasks{
-			fmt.Fprintf(w, "%s\t%s\t%s\n", v[0], v[1], v[2])
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", v[0], v[1], v[2], v[3])
 		}
 
 		if err := w.Flush(); err != nil{

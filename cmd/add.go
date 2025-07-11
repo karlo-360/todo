@@ -40,24 +40,32 @@ var addCmd = &cobra.Command{
 		}
 
 		var id int
-		for i, v := range tasks{
-			
-			if i == 0 {
-				continue
-			}
+		if len(tasks) == 0 {
+			tasks = append(tasks, []string{"ID", "NAME", "DATE", "COMPLETED"})
+			id = 1
+		} else if len(tasks) == 1 {
+			id = 1
+		} else {
+			for i, v := range tasks{
 
-			taskId, err := strconv.Atoi(v[0])
-			if err != nil {
-				log.Fatalf("failed to convert string to integer at index %d: %s\n", i, err)
-			}
+				if i == 0 {
+					continue
+				}
 
-			if i != taskId {
-				id = i
-				break
-			} else {
-				id = taskId + 1
+				taskId, err := strconv.Atoi(v[0])
+				if err != nil {
+					log.Fatalf("failed to convert string to integer at index %d: %s\n", i, err)
+				}
+
+				if i != taskId {
+					id = i
+					break
+				} else {
+					id = taskId + 1
+				}
 			}
 		}
+
 
 		newId := strconv.Itoa(id)
 		name := strings.Join(args, " ")
@@ -70,6 +78,7 @@ var addCmd = &cobra.Command{
 				newId,
 				name,
 				date,
+				"NO",
 			},
 		)
 
