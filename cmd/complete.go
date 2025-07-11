@@ -1,11 +1,14 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
+	"encoding/csv"
 	"fmt"
+	"log"
+	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -14,14 +17,57 @@ import (
 var completeCmd = &cobra.Command{
 	Use:   "complete",
 	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long: ``,
+	Args: cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("complete called")
+		fr, err := os.Open("/home/karlo/Documents/tasks.csv")
+		if err != nil {
+			log.Fatalln("error opening the file for reading: ", err)
+		}
+
+		r := csv.NewReader(fr)
+
+		tasks, err := r.ReadAll()
+		if err != nil {
+			log.Fatalln("error reading all: ", err)
+		}
+
+		if err := fr.Close(); err != nil{
+			log.Fatalln("error closing file reader: ", err)
+		}
+
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			log.Fatalf("failed to convert string to integer %s: %s\n", args[0], err)
+		}
+
+		if tasks[id][3] != "NO" {
+			fmt.Println("this task is alredy complete")
+			return
+		}
+
+		tasks[id][3] = "YES"
+		fmt.Println("task completed")
+
+		fw, err := os.OpenFile("/home/karlo/Documents/tasks.csv", os.O_RDWR|os.O_CREATE, 0644)
+		if err != nil {
+			log.Fatalln("error opnening the file for writing: ", err)
+		}
+		defer fw.Close()
+
+		w := csv.NewWriter(fw)
+
+		for _, v := range tasks{
+			if err := w.Write(v); err != nil {
+				log.Fatalln("error wrinting newTask to csv: ", err)
+			}
+		}
+
+		w.Flush()
+		if err := w.Error(); err != nil {
+			log.Fatalln("error while flushing: ", err)
+		}
+
 	},
 }
 
