@@ -86,7 +86,7 @@ var addCmd = &cobra.Command{
 			newList = append(newList, originTasks...)
 		}
 
-		fw, err := os.OpenFile("/home/karlo/Documents/tasks.csv", os.O_RDWR|os.O_CREATE, 0644)
+		fw, err := os.OpenFile("/home/karlo/Documents/tasks.csv", os.O_WRONLY|os.O_CREATE, 0644)
 		if err != nil {
 			log.Fatalln("error opnening the file for writing: ", err)
 		}

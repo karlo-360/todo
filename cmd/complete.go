@@ -16,8 +16,8 @@ import (
 // completeCmd represents the complete command
 var completeCmd = &cobra.Command{
 	Use:   "complete",
-	Short: "A brief description of your command",
-	Long: ``,
+	Short: "complete a tasks",
+	Long: `mark as completed any of you tasks`,
 	Args: cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
 		fr, err := os.Open("/home/karlo/Documents/tasks.csv")
